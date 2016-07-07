@@ -1,0 +1,57 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.intel.mtwilson.docker-proxy</groupId>
+	<artifactId>docker-proxy-vrtm-client</artifactId>
+
+	<description>Docker proxy vrtm client</description>
+
+	<parent>
+		<groupId>com.intel.mtwilson.maven</groupId>
+		<artifactId>mtwilson-core-feature-zip</artifactId>
+		<version>3.1-SNAPSHOT</version>
+		<relativePath />
+	</parent>
+
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>1.7</maven.compiler.source>
+		<maven.compiler.target>1.7</maven.compiler.target>
+	</properties>
+
+	<repositories>
+		<repository>
+			<id>central</id>
+			<name>bintray</name>
+			<url>http://jcenter.bintray.com</url>
+			<layout>default</layout>
+		</repository>
+		<repository>
+			<id>mavenrepo1</id>
+			<name>repo1 maven</name>
+			<url>http://repo1.maven.org/maven2</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+
+	<dependencies>
+		<!-- docker proxy -->
+		<dependency>
+			<groupId>com.intel.mtwilson.docker-proxy</groupId>
+			<artifactId>docker-proxy-common</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.intel.mtwilson.docker-proxy</groupId>
+			<artifactId>docker-proxy-api</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<!-- common-java -->
+		
+	</dependencies>
+
+</project>
