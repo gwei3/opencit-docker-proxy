@@ -19,6 +19,7 @@ public class DockerProxyCache {
 	public static Map<String, String> containerIdToVrtmStateMap = new HashMap<String, String>();
 
 	public static String dockerInstallationPath;
+	public static String policyAgentPath;
 	public static int vrtmPort;
 	private static String engineHost;
 	private static int enginePort;
@@ -41,6 +42,9 @@ public class DockerProxyCache {
 
 		dockerInstallationPath = proxyConfiguration.get(Constants.DOCKER_INSTALLATION_PATH,
 				Constants.DEFAULT_DOCKER_INSTALL_PATH); // if no installation
+		policyAgentPath=proxyConfiguration.get(Constants.POLICY_AGENT_PATH,
+				Constants.DEFAULT_POLICY_AGENT_PATH);
+		
 		// path provided ,it
 		// takes default
 		// installation path as
@@ -55,6 +59,32 @@ public class DockerProxyCache {
 
 		setDockerEngineParams();
 	}
+
+	
+	
+	public static String getPolicyAgentPath() {
+		return policyAgentPath;
+	}
+
+
+
+	public static void setPolicyAgentPath(String policyAgentPath) {
+		DockerProxyCache.policyAgentPath = policyAgentPath;
+	}
+
+
+
+	public static Configuration getProxyConfiguration() {
+		return proxyConfiguration;
+	}
+
+
+
+	public static void setProxyConfiguration(Configuration proxyConfiguration) {
+		DockerProxyCache.proxyConfiguration = proxyConfiguration;
+	}
+
+
 
 	private static void setDockerEngineParams() {
 		String dockerConfigurationFilePath = proxyConfiguration.get(Constants.DOCKER_CONF_FILE_PATH,

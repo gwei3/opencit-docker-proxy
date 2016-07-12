@@ -27,6 +27,7 @@ export DOCKER_PROXY_HOME=${DOCKER_PROXY_HOME:-/opt/docker-proxy}
 DOCKER_PROXY_LAYOUT=${DOCKER_PROXY_LAYOUT:-home}
 DOCKER_CONFIG_FILE=${DOCKER_CONFIG_FILE:-/etc/default/docker}
 DOCKER_INSTALATION_DIR=${DOCKER_INSTALATION_DIR:-/var/lib/docker}
+POLICY_AGENT_PATH=${POLICY_AGENT_PATH:-/usr/local/bin/policyagent}
 DOCKER_PLUGINS_DIR=${DOCKER_PLUGINS_DIR:-/etc/docker/plugins}
 DOCKER_PROXY_PLUGIN_PORT=${DOCKER_PROXY_PLUGIN_PORT:-22080}
 VRTM_ENV=${VRTM_ENV:-/opt/vrtm/env}
@@ -348,6 +349,7 @@ echo DOCKER_OPTS=\"$DOCKER_OPTS\" >> "$DOCKER_CONFIG_FILE"
 echo "docker.conf.file.path=${DOCKER_CONFIG_FILE}" > "$DOCKER_PROXY_PROPERTIES_FILE"
 echo "docker.installation.path=${DOCKER_INSTALATION_DIR}" >> "$DOCKER_PROXY_PROPERTIES_FILE"
 echo "docker.plugins.dir.path=${DOCKER_PLUGINS_DIR}" >> "$DOCKER_PROXY_PROPERTIES_FILE"
+echo "policy.agent.path=${POLICY_AGENT_PATH}" >> "$DOCKER_PROXY_PROPERTIES_FILE"
 
 #load vRTM configuration too, as socket on which vRTM listens is required and add it to docker-proxy.properties file
 if [ -f "$VRTM_ENV/vrtm-layout" ]
@@ -378,6 +380,7 @@ fi
 #add the present configuration to docker-proxy-layout file too
 echo "export DOCKER_CONF_FILE_PATH=${DOCKER_CONFIG_FILE}" >> $DOCKER_PROXY_ENV/docker-proxy-layout
 echo "export DOCKER_INSTALLATION_PATH=${DOCKER_INSTALATION_DIR}" >> $DOCKER_PROXY_ENV/docker-proxy-layout
+echo "export POLICY_AGENT_PATH=${POLICY_AGENT_PATH}" >> $DOCKER_PROXY_ENV/docker-proxy-layout
 
 
 # setup the docker-proxy, unless the NOSETUP variable is defined

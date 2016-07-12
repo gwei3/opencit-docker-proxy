@@ -26,6 +26,9 @@ DRIVER_DEVICEMAPPER="devicemapper"
 DRIVER_AUFS="aufs"
 UNMOUNT_FLAG=false
 MOUNT_FLAG=false
+CONTAINER_ID=""
+
+set -x
 
 docker_version() {
 	if [ -n "$DOCKER_HOST_ADDR" ]
@@ -44,25 +47,25 @@ docker_version() {
 
 #reads various docker configuration related info
 populate_docker_info() {
-	mkdir -p /tmp/CIT
-	if [ "$DOCKER_HOST_ADDR" != "" ]
-	then
-		if $(docker -H "$DOCKER_HOST_ADDR" info >$TEMP_DOCKER_INFO_FILE 2>/dev/null)
+	if  [ ! -f "$TEMP_DOCKER_INFO_FILE" ] ; then
+		mkdir -p /tmp/CIT
+		if [ "$DOCKER_HOST_ADDR" != ""  ]
 		then
-			docker -H "$DOCKER_HOST_ADDR" images --no-trunc >$TEMP_DOCKER_IMAGES_FILE 2>/dev/null
-		else
-			echo >&2 "Check if docker docker daemon is running"
-			return 1
+			if  ! $(docker -H "$DOCKER_HOST_ADDR" info >$TEMP_DOCKER_INFO_FILE 2>/dev/null) 
+			then
+				echo >&2 "Unable to get docker info"
+				return 1
+			fi
+		else	
+			if ! $(docker info >$TEMP_DOCKER_INFO_FILE 2>/dev/null)
+			then
+				echo >&2 "Unable to get docker info"
+				return 1
+			fi
 		fi
-	else	
-		if $(docker info >$TEMP_DOCKER_INFO_FILE 2>/dev/null)
-		then
-			docker images --no-trunc >$TEMP_DOCKER_IMAGES_FILE 2>/dev/null  
-		else
-			echo >&2 "Check if docker docker daemon is running"
-			return 1
-		fi
+
 	fi
+
 	if [ -n "$TAG_REPO" ]; then
 		IMAGE_TAG=`echo "$TAG_REPO" | awk -F':' '{ print $2}'`
 		IMAGE_REPO=`echo "$TAG_REPO" | awk -F':' '{ print $1}'`
@@ -74,21 +77,23 @@ populate_docker_info() {
 			echo >&2 "IMAGE_ID is : $IMAGE_ID"
 		fi
 	else
-		IMAGE_ID=`cat /tmp/CIT/docker_images | grep "$IMAGE_ID" | awk '{print $3}' | sed -e 's/^[^:]*://'`
+		##IMAGE_ID=`cat /tmp/CIT/docker_images | grep "$IMAGE_ID" | awk '{print $3}' | sed -e 's/^[^:]*://'`
 		echo >&2 "IMAGE_ID is : $IMAGE_ID"
 	fi
 	STORAGE_DRIVER=$(cat $TEMP_DOCKER_INFO_FILE | grep "Storage Driver" | awk -F'[ :]' '{ print $4 }')
+	echo >&2 "Storage Driver : $STORAGE_DRIVER" 	
 	if [ "$STORAGE_DRIVER" == "$DRIVER_AUFS" ];then		
-		echo >&2 "Storage Driver : $STORAGE_DRIVER" 	
+		
 		DOCKER_ROOT_DIR=`cat $TEMP_DOCKER_INFO_FILE | grep -i "^\s*Root Dir" | awk -F'[ :]' '{ print $5}'`
 		DOCKER_ROOT_DIR=`dirname $DOCKER_ROOT_DIR`
 	elif [ "$STORAGE_DRIVER" == "$DRIVER_DEVICEMAPPER" ]; then
-		echo >&2 "Storage Driver : $STORAGE_DRIVER" 	
+			
 		DOCKER_ROOT_DIR=`cat $TEMP_DOCKER_INFO_FILE | grep -i "Metadata loop file" | awk -F'[ :]' '{ print $6}' | awk -F'devicemapper' '{ print $1}'`
 		#DOCKER_ROOT_DIR=`dirname $DOCKER_ROOT_DIR`
 		DOCKER_POOL=$( cat $TEMP_DOCKER_INFO_FILE | grep "Pool Name" | awk '{print $3}')
 		#METADATA_DIR=$( cat $TEMP_DOCKER_INFO_FILE | grep "Metadata loop" | awk '{print $4}')
-	else
+	else	
+		echo "Storage Driver is $STORAGE_DRIVER" 
 		echo >&2 "Either Storage dirver is not supported by mount script or Storage driver is not specfied in docker info"
 		return 2
 	fi
@@ -112,7 +117,7 @@ mount_device_mapper_v1_9() {
 	get_snapshot_table_info
 	# create volume of snapshot
 	# if successful volume will be created under /dev/mapper/
-	dmsetup create $IMAGE_ID --table "${SNAPSHOT_TABLE_INFO}"
+	dmsetup create $CONTAINER_ID --table "${SNAPSHOT_TABLE_INFO}"
 	#redirect the output to log file
 	if [ `echo $?` -ne 0 ]
 	then
@@ -122,7 +127,7 @@ mount_device_mapper_v1_9() {
 		echo "Successfully created the volume from given snapshot table info"
 	fi
 	#mount the volume to specified location
-	mount "/dev/mapper/"${IMAGE_ID} $MOUNT_PATH
+	mount -r -o nouuid "/dev/mapper/"${CONTAINER_ID} $MOUNT_PATH
 	if [ `echo $?` -ne 0 ]
 	then
 		echo "can't mount the volume at specified location"
@@ -357,6 +362,7 @@ fi
 if [ -n "$MOUNT_PATH" ] && ([ -n "$IMAGE_ID" ] || [ -n "$TAG_REPO" ])
 then
 	if docker_version ; then
+		CONTAINER_ID=`echo "$MOUNT_PATH" | awk -F '/' '{ print $NF}'`
 		if start_mount; then
 			echo "Succesfully mounted the image at $MOUNT_PATH"
 		else

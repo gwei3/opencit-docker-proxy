@@ -36,6 +36,8 @@ public class ProxyRequestHandler extends GenericHandler {
 
 	@Override
 	public PluginResponse processSpecific() throws DockerProxyException {
+		/// We validate request to be forwarded for execution to docker engine or deny execution. 
+		//Policy agent call is made in this validation
 		if(requestWorkflow.validateClientRequestAndInit()){
 			return EMPTY_ALLOW_RESPONSE;
 		}

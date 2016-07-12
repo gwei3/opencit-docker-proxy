@@ -136,6 +136,48 @@ CLASSPATH=$CLASSPATH:$(find "$JAVA_HOME" -name jfxrt*.jar | head -n 1)
 export CLASSPATH
 ###################################################################################################
 
+
+#Read docnker-engine configuration from specified file and extract out the docker host run configuration
+DOCKER_ENGINE_OPTS=""
+DOCKER_ENGINE_SERVER_TYPE=""
+DOCKER_ENGINE_SOCKET_FILE=""
+DOCKER_ENGINE_HOST=""
+DOCKER_ENGINE_LISTEN_PORT=""
+DEFAULT_DOCKER_ENGINE_SOCKET="/var/run/docker.sock"
+. "$DOCKER_CONF_FILE_PATH"
+flag=""
+DOCKER_ENGINE_HOST_OPTS=""
+while read arg
+do
+        case "$arg" in
+                -H):
+                        flag="-H"
+                        ;;
+                --host*)
+                        DOCKER_ENGINE_HOST_OPTS=` echo $arg | sed 's/[^=]*=\?//'`
+                        ;;
+                *)
+			if [ "$flag" == "-H" ]
+			then
+				DOCKER_ENGINE_HOST_OPTS="$arg"
+				flag=""
+			elif ! result=`echo "$arg" | grep "\-\-tls.*"`
+			then
+				DOCKER_ENGINE_OPTS="${DOCKER_ENGINE_OPTS} $arg"
+			fi
+			;;
+        esac
+done < <( echo "$DOCKER_OPTS" | xargs -n 1)
+
+
+# if [ "$DOCKER_ENGINE_HOST_OPTS" == "" ]
+# then
+	# DOCKER_ENGINE_HOST_OPTS="unix:///var/run/docker.sock"
+# fi
+
+
+#echo "DOCKER ENGINE HOST Address: $DOCKER_ENGINE_HOST_OPTS"
+#echo "DOCKER_OPTS: $DOCKER_ENGINE_OPTS"
 # run a docker-proxy command
 docker_proxy_run() {
   local args="$*"
@@ -216,6 +258,35 @@ docker_proxy_is_running() {
   # Docker Proxy is running and DOCKER_PROXY_PID is set
   return 0
 }
+
+docker_info_populate() {
+TEMP_DOCKER_INFO_FILE="/tmp/CIT/docker_info"
+TEMP_DOCKER_IMAGES_FILE="/tmp/CIT/docker_images"
+
+
+		
+		mkdir -p /tmp/CIT
+		if [ "$DOCKER_ENGINE_HOST_OPTS" != ""  ]
+		then
+			if  ! $(docker -H "$DOCKER_ENGINE_HOST_OPTS" info >$TEMP_DOCKER_INFO_FILE 2>/dev/null) 
+			then
+				echo >&2 "Unable to get docker info"
+				return 1
+			fi
+		else	
+			if ! $(docker info >$TEMP_DOCKER_INFO_FILE 2>/dev/null)
+			then
+				echo >&2 "Unable to get docker info"
+				return 1
+			fi
+		fi
+
+	
+
+}
+
+
+
 
 docker_engine_is_running() {
 	DOCKER_ENGINE_PID=""
@@ -317,6 +388,7 @@ case "$1" in
 	service docker stop
     docker_proxy_start
     service docker start
+	docker_info_populate
     ;;
   stop)
     service docker stop
@@ -327,6 +399,7 @@ case "$1" in
 	docker_proxy_stop
     docker_proxy_start
     service docker start
+	docker_info_populate
 	;;
   status)
     if docker_proxy_is_running; then

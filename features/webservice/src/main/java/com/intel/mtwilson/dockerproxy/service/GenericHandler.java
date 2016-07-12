@@ -31,7 +31,7 @@ public abstract class GenericHandler {
 			log.debug("Not processing GET request : {}", requestUri);
 			return EMPTY_ALLOW_RESPONSE;
 		}
-
+		
 		byte[] requestBodyBytes = dataFromDocker.RequestBody;
 		String requestBody = null;
 		if (requestBodyBytes != null) {
@@ -41,6 +41,7 @@ public abstract class GenericHandler {
 		log.debug("requestMethod:: {}", requestMethod);
 		log.debug("requestUri:: {}", requestUri);
 		log.debug("body:: {}", requestBody);
+		// Initializing workflow based on request uri and method
 		requestWorkflow = RequestWorkflowFactory.getRequestProcessor(requestMethod, requestUri);
 		requestWorkflow.setRequestbody(requestBody);
 		return processSpecific();

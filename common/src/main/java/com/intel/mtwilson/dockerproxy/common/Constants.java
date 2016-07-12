@@ -22,6 +22,8 @@ public class Constants {
     public static final String ENGINE_SOCKET_FILE_PATH = "docker.engine.socket.file";
     public static final String HOST = "localhost";
     public static final String DOCKER_INSTALLATION_PATH = "docker.installation.path";
+    public static final String POLICY_AGENT_PATH = "policy.agent.path";
+    public static final String DEFAULT_POLICY_AGENT_PATH = "/usr/local/bin/policyagent";
     public static final String VRTM_PORT = "vrtm.port";
 
     public static final String DEFAULT_DOCKER_INSTALL_PATH = "/var/lib/docker";

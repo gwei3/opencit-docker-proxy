@@ -68,8 +68,7 @@ public class ProxyUtil {
 		boolean patternExists = false;
 		if (matcher.find()) {
 			patternExists = true;
-		}
-		return patternExists;
+		}		return patternExists;
 
 	}
 
@@ -198,7 +197,7 @@ public class ProxyUtil {
 		}
 
 		try {
-			exitcode = executeCommandInExecUtil(Constants.POLICY_AGENT_COMMAND, args);
+			exitcode = executeCommandInExecUtil(DockerProxyCache.getPolicyAgentPath(), args);
 		} catch (Exception e) {
 			log.error("Error in executeDockerCommands docker " + args[0], e);
 			throw new DockerProxyException("Error in executing policy agent", e);
@@ -249,8 +248,12 @@ public class ProxyUtil {
 			result = executePolicyAgentCommands("container_launch", Constants.MOUNT_PATH + containerId, imageId,
 					containerId, containerName, Constants.TRUST_POLICY_PATH);
 		}
-
-		return (result == 0);
+		if(result == 0){
+			
+			return true;
+		}
+			
+		return false;
 	}
 
 	public static boolean isNoContentResponse(String response) {
