@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 
 import com.intel.mtwilson.dockerproxy.common.DockerProxyCache;
 import com.intel.mtwilson.dockerproxy.common.MountUtil;
+import com.intel.mtwilson.dockerproxy.common.ProxyThreadExecutor;
+import com.intel.mtwilson.dockerproxy.common.UnmountTask;
 import com.intel.mtwilson.dockerproxy.exception.DockerProxyException;
 import com.intel.mtwilson.dockerproxy.common.ProxyUtil;
 
@@ -72,7 +74,9 @@ public class StartWorkflow extends BypassWorkflow {
 				long diff = endTime - startTime;
 				log.debug("StartWorkflow, validateClientRequestAndInit ,PolicyAgent Call time execution :: {}", diff);
 			}
-			MountUtil.unmountImage(containerId, imageId);
+			///Asynchronously calling unmount
+			UnmountTask unmountTask= new UnmountTask(imageId,containerId);
+			ProxyThreadExecutor.submitTask(unmountTask);
 		}
 		
 		return policyAgentValidate;

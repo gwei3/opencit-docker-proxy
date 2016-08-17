@@ -1,4 +1,3 @@
-#!/bin/bash
 
 # Docker Proxy install script
 # Outline:
@@ -27,11 +26,19 @@ export DOCKER_PROXY_HOME=${DOCKER_PROXY_HOME:-/opt/docker-proxy}
 DOCKER_PROXY_LAYOUT=${DOCKER_PROXY_LAYOUT:-home}
 DOCKER_CONFIG_FILE=${DOCKER_CONFIG_FILE:-/etc/default/docker}
 DOCKER_INSTALATION_DIR=${DOCKER_INSTALATION_DIR:-/var/lib/docker}
-POLICY_AGENT_PATH=${POLICY_AGENT_PATH:-/usr/local/bin/policyagent}
 DOCKER_PLUGINS_DIR=${DOCKER_PLUGINS_DIR:-/etc/docker/plugins}
 DOCKER_PROXY_PLUGIN_PORT=${DOCKER_PROXY_PLUGIN_PORT:-22080}
 VRTM_ENV=${VRTM_ENV:-/opt/vrtm/env}
 
+POLICY_AGENT_PATH=${POLICYAGENT_BIN}
+if [ "$POLICY_AGENT_PATH" == "" ]
+then
+	POLICY_AGENT_PATH=`which policyagent`
+	if [ "$POLICY_AGENT_PATH" == "" ]
+	then
+		POLICY_AGENT_PATH="/opt/policyagent/bin/policyagent.py"
+	fi
+fi
 # the env directory is not configurable; it is defined as DOCKER_PROXY_HOME/env and
 # the administrator may use a symlink if necessary to place it anywhere else
 export DOCKER_PROXY_ENV=$DOCKER_PROXY_HOME/env
@@ -274,7 +281,7 @@ fi
 
 
 # register linux startup script
-register_startup_script $DOCKER_PROXY_HOME/bin/docker-proxy.sh docker-proxy
+register_startup_script $DOCKER_PROXY_HOME/bin/docker-proxy.sh docker-proxy 15 85
 
 disable_tcp_timestamps
 
@@ -338,6 +345,10 @@ echo tcp://localhost:$DOCKER_PROXY_PLUGIN_PORT > "$DOCKER_PROXY_PLUGIN_FILE"
 
 #Modify the docker config file to include docker_proxy
 . "$DOCKER_CONFIG_FILE"
+if [ -z "$DOCKER_OPTS" ]
+then
+    DOCKER_OPTS="--storage-driver=aufs"
+fi	
 if test "${DOCKER_OPTS#*$PLUGIN_NAME}" == "$DOCKER_OPTS"
 then
 	DOCKER_OPTS="$DOCKER_OPTS --authorization-plugin=$PLUGIN_NAME"

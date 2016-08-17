@@ -22,6 +22,7 @@ TAG_REPO=""
 STORAGE_DRIVER=""
 TEMP_DOCKER_INFO_FILE="/tmp/CIT/docker_info"
 TEMP_DOCKER_IMAGES_FILE="/tmp/CIT/docker_images"
+DOCKER_CONF_FILE_PATH=/etc/default/docker
 DRIVER_DEVICEMAPPER="devicemapper"
 DRIVER_AUFS="aufs"
 UNMOUNT_FLAG=false
@@ -49,21 +50,12 @@ docker_version() {
 populate_docker_info() {
 	if  [ ! -f "$TEMP_DOCKER_INFO_FILE" ] ; then
 		mkdir -p /tmp/CIT
-		if [ "$DOCKER_HOST_ADDR" != ""  ]
+		. "$DOCKER_CONF_FILE_PATH"
+		if  ! $(docker $DOCKER_OPTS info >$TEMP_DOCKER_INFO_FILE 2>/dev/null) 
 		then
-			if  ! $(docker -H "$DOCKER_HOST_ADDR" info >$TEMP_DOCKER_INFO_FILE 2>/dev/null) 
-			then
-				echo >&2 "Unable to get docker info"
-				return 1
-			fi
-		else	
-			if ! $(docker info >$TEMP_DOCKER_INFO_FILE 2>/dev/null)
-			then
-				echo >&2 "Unable to get docker info"
-				return 1
-			fi
+			echo >&2 "Unable to get docker info"
+			return 1
 		fi
-
 	fi
 
 	if [ -n "$TAG_REPO" ]; then
@@ -167,6 +159,12 @@ unmount_device_mapper() {
 		if dmsetup remove "$DEVICE"; then
 			return 0
 		else
+			sleep 1
+			if dmsetup remove "$DEVICE"; then
+				return 0
+			fi
+			echo "Couldn't remove the device ${DEVICE}. Please remvove it manually"
+			echo "with command dmsetup: remove ${DEVICE}"
 			return 1
 		fi
 	else

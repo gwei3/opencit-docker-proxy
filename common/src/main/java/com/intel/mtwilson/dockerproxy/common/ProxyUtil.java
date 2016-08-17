@@ -41,9 +41,8 @@ public class ProxyUtil {
 	}
 
 	public static String extractContainerIdformDeleteRequest(String requestUri) {
-		log.debug("extractContainerIdformDeleteRequest requestUri::" + requestUri);
-
-		Pattern pattern = Pattern.compile("containers/(.*)\\?");
+		//Pattern pattern = Pattern.compile("containers/(.*)\\?");
+		Pattern pattern = Pattern.compile(RegularExpressions.DELETE_REGEX);
 		return getResultByPattern(pattern, requestUri);
 	}
 

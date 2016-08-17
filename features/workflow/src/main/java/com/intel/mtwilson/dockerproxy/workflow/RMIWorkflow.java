@@ -1,5 +1,6 @@
 package com.intel.mtwilson.dockerproxy.workflow;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +36,10 @@ public class RMIWorkflow extends BypassWorkflow {
 			String containerId = ProxyUtil.extractContainerIdformDeleteRequest(requestUri);
 			log.debug("RMI workflow containerId:: {}",
 					containerId);
-
+			if(StringUtils.isBlank(containerId)){
+				log.error("Could not extract container id from request uri:{}. Not updating vRTM status", requestUri);
+				return;
+			}
 			VrtmManager vrtmManager = new VrtmManager();
 			vrtmManager.checkAndUpdateVrtm(containerId, Constants.VRTM_STATUS_DELETED);
 		}

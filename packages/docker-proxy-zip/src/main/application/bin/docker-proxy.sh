@@ -38,7 +38,6 @@ docker-proxy_load_env() {
     fi
   done  
 }
-
 if [ -z "$DOCKER_PROXY_USERNAME" ]; then
   docker-proxy_load_env $DOCKER_PROXY_HOME/env/docker-proxy-username
 fi
@@ -227,6 +226,7 @@ docker_proxy_start() {
       cd $DOCKER_PROXY_HOME
       $prog $JAVA_OPTS com.intel.mtwilson.launcher.console.Main jetty-start >>$DOCKER_PROXY_APPLICATION_LOG_FILE 2>&1 &      
       echo $! > $DOCKER_PROXY_PID_FILE    )
+    sleep 2
     if docker_proxy_is_running; then
       echo_success "Started Docker Proxy"
     else
@@ -260,29 +260,24 @@ docker_proxy_is_running() {
 }
 
 docker_info_populate() {
-TEMP_DOCKER_INFO_FILE="/tmp/CIT/docker_info"
-TEMP_DOCKER_IMAGES_FILE="/tmp/CIT/docker_images"
-
-
-		
-		mkdir -p /tmp/CIT
-		if [ "$DOCKER_ENGINE_HOST_OPTS" != ""  ]
+	TEMP_DOCKER_INFO_FILE="/tmp/CIT/docker_info"
+	TEMP_DOCKER_IMAGES_FILE="/tmp/CIT/docker_images"
+	. "$DOCKER_CONF_FILE_PATH"		
+	mkdir -p /tmp/CIT
+	if ! result=$(which docker)
+	then
+		echo >&2 "docker command not found"
+		return 1
+	fi
+	if  ! $(docker $DOCKER_OPTS info >$TEMP_DOCKER_INFO_FILE 2>/dev/null) 
+	then
+		sleep 2
+		if ! $(docker $DOCKER_OPTS info >$TEMP_DOCKER_INFO_FILE 2>/dev/null)
 		then
-			if  ! $(docker -H "$DOCKER_ENGINE_HOST_OPTS" info >$TEMP_DOCKER_INFO_FILE 2>/dev/null) 
-			then
-				echo >&2 "Unable to get docker info"
-				return 1
-			fi
-		else	
-			if ! $(docker info >$TEMP_DOCKER_INFO_FILE 2>/dev/null)
-			then
-				echo >&2 "Unable to get docker info"
-				return 1
-			fi
+			echo >&2 "Unable to get docker info"
+			return 1
 		fi
-
-	
-
+	fi
 }
 
 
