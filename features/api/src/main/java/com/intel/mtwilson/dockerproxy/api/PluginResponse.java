@@ -17,7 +17,7 @@ public class PluginResponse {
 		this.error = error;
 	}
 
-	public static PluginResponse CreateDenyPluginResponse(String denyMessage) {
+	public static PluginResponse createDenyPluginResponse(String denyMessage) {
 		PluginResponse pluginResponse = new PluginResponse(false, null, denyMessage);
 		return pluginResponse;
 	}

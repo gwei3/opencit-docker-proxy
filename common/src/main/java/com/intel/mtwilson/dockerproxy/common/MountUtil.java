@@ -12,7 +12,6 @@ public class MountUtil {
 
 
 	public static int mountDocker(String mountpath, String imageId) throws DockerProxyException {
-		int exitcode = 1;
 		String serverType = DockerProxyCache.getEngineServerType();
 		String hostUrlParameter = getDockerOpts(serverType);
 		String imageIdParameter = "--image-id=" + imageId;
@@ -21,32 +20,29 @@ public class MountUtil {
 				+ imageIdParameter;
 		log.debug("\n" + "Mounting the docker image : " + mountpath + "with command: " + command);
 		try {
-			exitcode = ProxyUtil.executeCommandInExecUtil(Constants.mountDockerScript, mountPathParameter,
+			int exitcode = ProxyUtil.executeCommandInExecUtil(Constants.mountDockerScript, mountPathParameter,
 					hostUrlParameter, imageIdParameter);
+			return exitcode;
 		} catch (IOException e) {
-			exitcode = 1;
 			log.error("Error in mounting docker image" + e);
 			throw new DockerProxyException("Error in mounting docker image", e);
 		}
-		return exitcode;
 	}
 
-	public static int unmountDocker(String mountpath, String imageId) {
-		int exitcode = 1;
-
+	public static int unmountDocker(String mountpath, String imageId) {		
 		String unmountPathParameter = "--unmount-path=" + mountpath;
 		String serverType = DockerProxyCache.getEngineServerType();
 		String hostUrlParameter = getDockerOpts(serverType);
 
 		String command = Constants.mountDockerScript + Constants.SPACE + unmountPathParameter;
 		log.debug(":\n" + "Unmounting the docker image : " + mountpath + "with command: " + command);
+		int exitcode;
 		try {
 			exitcode = ProxyUtil.executeCommandInExecUtil(Constants.mountDockerScript, unmountPathParameter,
 					hostUrlParameter);
 		} catch (IOException e) {
 			exitcode = 1;
 			log.error("Error in unmounting docker image" + e);
-
 		}
 		File mountDirectory = new File(mountpath);
 		if (mountDirectory.exists()) {
@@ -83,13 +79,11 @@ public class MountUtil {
 	}
 
 	private static String getDockerOpts(String serverType) {
-		String hostUrlParameter = null;
+		String hostUrlParameter = "--host=unix://" + DockerProxyCache.getEngineSocket();
 		if (Constants.SERVER_TYPE_TCP.equalsIgnoreCase(serverType)) {
 			hostUrlParameter = "--host=tcp://" + DockerProxyCache.getEngineHost() + ":"
 					+ DockerProxyCache.getEnginePort();
-		} else {
-			hostUrlParameter = "--host=unix://" + DockerProxyCache.getEngineSocket();
-		}
+		} 
 		return hostUrlParameter;
 	}
 

@@ -56,9 +56,9 @@ public class StartWorkflow extends BypassWorkflow {
 				containerId);
 		long startTime = System.currentTimeMillis();
 		long endTime = 0;
-		boolean policyAgentValidate=false;
+		
 		try {
-			policyAgentValidate = ProxyUtil.policyAgentValidate(containerId, imageId);
+			boolean policyAgentValidate = ProxyUtil.policyAgentValidate(containerId, imageId);
 			log.debug("Policy agent validate status:{} for request uri {}", policyAgentValidate,requestUri);
 
 			if (!policyAgentValidate) { // If PA validation failed we throw

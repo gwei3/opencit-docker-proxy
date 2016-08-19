@@ -41,7 +41,7 @@ public class ProxyRequestHandler extends GenericHandler {
 		if(requestWorkflow.validateClientRequestAndInit()){
 			return EMPTY_ALLOW_RESPONSE;
 		}
-		return PluginResponse.CreateDenyPluginResponse("Policy Agent validation Failed");
+		return PluginResponse.createDenyPluginResponse("Policy Agent validation Failed");
 		///return EMPTY_ALLOW_RESPONSE;
 	}
 

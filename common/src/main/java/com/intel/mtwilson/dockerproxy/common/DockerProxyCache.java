@@ -32,8 +32,9 @@ public class DockerProxyCache {
 
 	}
 	static Configuration proxyConfiguration = null;
+
 	public static void init() {
-		
+
 		try {
 			proxyConfiguration = ConfigurationFactory.getConfiguration();
 		} catch (IOException e1) {
@@ -42,9 +43,8 @@ public class DockerProxyCache {
 
 		dockerInstallationPath = proxyConfiguration.get(Constants.DOCKER_INSTALLATION_PATH,
 				Constants.DEFAULT_DOCKER_INSTALL_PATH); // if no installation
-		policyAgentPath=proxyConfiguration.get(Constants.POLICY_AGENT_PATH,
-				Constants.DEFAULT_POLICY_AGENT_PATH);
-		
+		policyAgentPath = proxyConfiguration.get(Constants.POLICY_AGENT_PATH, Constants.DEFAULT_POLICY_AGENT_PATH);
+
 		// path provided ,it
 		// takes default
 		// installation path as
@@ -60,35 +60,26 @@ public class DockerProxyCache {
 		setDockerEngineParams();
 	}
 
-	
-	
 	public static String getPolicyAgentPath() {
 		return policyAgentPath;
 	}
-
-
 
 	public static void setPolicyAgentPath(String policyAgentPath) {
 		DockerProxyCache.policyAgentPath = policyAgentPath;
 	}
 
-
-
 	public static Configuration getProxyConfiguration() {
 		return proxyConfiguration;
 	}
-
-
 
 	public static void setProxyConfiguration(Configuration proxyConfiguration) {
 		DockerProxyCache.proxyConfiguration = proxyConfiguration;
 	}
 
-
-
 	private static void setDockerEngineParams() {
 		String dockerConfigurationFilePath = proxyConfiguration.get(Constants.DOCKER_CONF_FILE_PATH,
-				Constants.DEFAULT_DOCKER_CONFIG_PATH); // default path i.e /etc/default/docker
+				Constants.DEFAULT_DOCKER_CONFIG_PATH); // default path i.e
+														// /etc/default/docker
 
 		File file = new File(dockerConfigurationFilePath);
 
@@ -105,7 +96,9 @@ public class DockerProxyCache {
 			log.error("Error reading docker config file at location {}", dockerConfigurationFilePath, e1);
 		} finally {
 			try {
-				fileInput.close();
+				if (fileInput != null) {
+					fileInput.close();
+				}
 			} catch (IOException e) {
 				log.error("Error closing stream", e);
 			}
@@ -172,7 +165,7 @@ public class DockerProxyCache {
 				}
 			}
 		}
-		
+
 	}
 
 	public static int getVrtmPort() {

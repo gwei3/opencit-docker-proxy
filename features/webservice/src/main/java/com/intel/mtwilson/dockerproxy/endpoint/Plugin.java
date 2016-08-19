@@ -52,20 +52,21 @@ public class Plugin {
 	@Path("AuthZPlugin.AuthZReq")
 	public Response processRequest(String req, @Context HttpServletRequest httpServletRequest) throws IOException {
 		log.debug("Inside processRequest");
-		PluginResponse response = null;
 		ProxyRequestHandler requestHandler = null;
 		try {
 			requestHandler = new ProxyRequestHandler(req);
 		} catch (DockerProxyException e) {
 			log.error("Unable to initialize request handler", e);
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-					.entity(PluginResponse.CreateDenyPluginResponse("Unable to initialize plugin request handler")).build();
+					.entity(PluginResponse.createDenyPluginResponse("Unable to initialize plugin request handler")).build();
 		}
+		PluginResponse response = null;
+
 		try {
 			response = requestHandler.processRequest();
 		} catch (DockerProxyException e) {
 			log.error("Error processing docker request", e);
-			return Response.ok(PluginResponse.CreateDenyPluginResponse(e.getMessage())).build();
+			return Response.ok(PluginResponse.createDenyPluginResponse(e.getMessage())).build();
 		}
 		
 		return Response.ok(response).build();
@@ -80,7 +81,6 @@ public class Plugin {
 	@Path("AuthZPlugin.AuthZRes")
 	public Response processResponse(String req, @Context HttpServletRequest httpServletRequest) throws IOException {
 		log.debug("Inside processResponse");
-		PluginResponse response = null;
 		ProxyResponseHandler responseHandler = null;
 
 		try {
@@ -88,14 +88,15 @@ public class Plugin {
 		} catch (DockerProxyException e) {
 			log.error("Unable to initialize response handler", e);
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-					.entity(PluginResponse.CreateDenyPluginResponse("Unable to initialize plugin response handler")).build();
+					.entity(PluginResponse.createDenyPluginResponse("Unable to initialize plugin response handler")).build();
 		}
+		PluginResponse response = null;
 
 		try {
 			response = responseHandler.processRequest();
 		} catch (DockerProxyException e) {
 			log.error("Error processing docker response", e);
-			return Response.ok(PluginResponse.CreateDenyPluginResponse(e.getMessage())).build();
+			return Response.ok(PluginResponse.createDenyPluginResponse(e.getMessage())).build();
 		}
 
 		return Response.ok(response).build();

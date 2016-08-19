@@ -23,7 +23,7 @@ public class TCBuffer {
 		brpcPayloadSize = ByteBuffer.allocate(4);
 		brpcCallStatus = ByteBuffer.allocate(4);
 
-		rpcPayload = new String("EMPTY").getBytes();
+		rpcPayload = EMPTY.getBytes();
 
 		brpcCallIndex.order(ByteOrder.LITTLE_ENDIAN);
 		brpcPayloadSize.order(ByteOrder.LITTLE_ENDIAN);
@@ -115,15 +115,28 @@ public class TCBuffer {
 		byte[] bigBytes = new byte[4];
 		// in.read(bigBytes);
 		// setInternalValues(brpId, bigBytes);
-		in.read(bigBytes);
+		int read = in.read(bigBytes);
+		if(read == -1){
+			return;
+		}
 		setInternalValues(brpcCallIndex, bigBytes);
-		in.read(bigBytes);
+		read = in.read(bigBytes);
+		if(read == -1){
+			return;
+		}
 		setInternalValues(brpcPayloadSize, bigBytes);
-		in.read(bigBytes);
+		read = in.read(bigBytes);
+		if(read == -1){
+			return;
+		}
 		setInternalValues(brpcCallStatus, bigBytes);
 		// in.read(bigBytes);
 		// setInternalValues(boriginalRpId, bigBytes);
 		rpcPayload = new byte[getRPCPayloadSize()];
-		in.read(rpcPayload);
+		read = in.read(rpcPayload);
+		if(read == -1){
+			return;
+		}
+
 	}
 }

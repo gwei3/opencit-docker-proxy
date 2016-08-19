@@ -22,7 +22,6 @@ import com.intel.mtwilson.util.exec.Result;
 
 public class ProxyUtil {
 
-
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProxyUtil.class);
 
 	public static String extractContainerIdformStopRequest(String requestUri) {
@@ -41,7 +40,7 @@ public class ProxyUtil {
 	}
 
 	public static String extractContainerIdformDeleteRequest(String requestUri) {
-		//Pattern pattern = Pattern.compile("containers/(.*)\\?");
+		// Pattern pattern = Pattern.compile("containers/(.*)\\?");
 		Pattern pattern = Pattern.compile(RegularExpressions.DELETE_REGEX);
 		return getResultByPattern(pattern, requestUri);
 	}
@@ -67,13 +66,14 @@ public class ProxyUtil {
 		boolean patternExists = false;
 		if (matcher.find()) {
 			patternExists = true;
-		}		return patternExists;
+		}
+		return patternExists;
 
 	}
 
 	public static String extractContainerIdFromCreateContainerResponse(String responseBody) {
 		log.debug("extractContainerIdFromCreateContainerResponse,responseBody:" + responseBody);
-		String containerId = null;
+
 		int indexOfCurlyBranceOpen = responseBody.indexOf("{");
 		if (indexOfCurlyBranceOpen == -1) {
 			return null;
@@ -86,7 +86,7 @@ public class ProxyUtil {
 		String jsonString = body.substring(0, indexOfCurlyBranceClose + 1);
 		log.debug("extractContainerIdFromCreateContainerResponse ,jsonString::" + jsonString);
 		Map<String, Object> map = convertJsonToMap(jsonString);
-		containerId = (String) map.get("Id");
+		String containerId = (String) map.get("Id");
 
 		return containerId;
 	}
@@ -111,12 +111,21 @@ public class ProxyUtil {
 			log.error("Unable to read config json, isV2Version:" + isV2Version);
 		}
 
+		if (fisTargetFile == null) {
+			return null;
+		}
+
 		String targetFileStr = null;
 		try {
 			targetFileStr = IOUtils.toString(fisTargetFile, "UTF-8");
 		} catch (IOException e) {
 			log.error("Unable to read config json, isV2Version:" + isV2Version);
-
+		} finally {
+			try {
+				fisTargetFile.close();
+			} catch (IOException e) {
+				log.error("Unable to close stream", e);
+			}
 		}
 
 		Map<String, Object> map = convertJsonToMap(targetFileStr);
@@ -154,15 +163,20 @@ public class ProxyUtil {
 		} catch (IOException e) {
 			log.error("Unable to read config json, isV2Version: {}", isV2Version);
 			return null;
+		} finally {
+			try {
+				fisTargetFile.close();
+			} catch (IOException e) {
+				log.error("Unable to close stream", e);
+			}
 		}
 		Map<String, Object> map = convertJsonToMap(targetFileStr);
-		String imageId = null;
 		String imageAttribute = (String) map.get("Image");
+		String imageId = imageAttribute;
+
 		log.trace("imageAttribute::" + imageAttribute);
-		if (isV2Version) {
+		if (isV2Version && StringUtils.isNotBlank(imageAttribute)) {
 			imageId = imageAttribute.substring(imageAttribute.indexOf(":") + 1);
-		} else {
-			imageId = imageAttribute;
 		}
 		log.debug(" xtractImageIdFromContainerId, imageId::" + imageId);
 		return imageId;
@@ -178,15 +192,18 @@ public class ProxyUtil {
 		Map<String, Object> map = convertJsonToMap(jsonString);
 
 		String imageId = (String) map.get("Image");
-		if (imageId.contains(":")) { // // Condition when docker repo:tag comes
+		if (StringUtils.isNotBlank(imageId) && imageId.contains(":")) { // //
+																		// Condition
+																		// when
+																		// docker
+																		// repo:tag
+																		// comes
 			// // in Image attribute in json instead of
 			// // imageId
 			return null;
 		}
 		return imageId;
 	}
-
-	
 
 	public static int executePolicyAgentCommands(String... args) throws DockerProxyException {
 		int exitcode;
@@ -232,7 +249,7 @@ public class ProxyUtil {
 		String rootfsMountPath;
 		rootfsMountPath = Constants.MOUNT_PATH + containerId + "/rootfs";
 		File deviceMapperMountPath = new File(rootfsMountPath);
-		int result = -1;
+		int result;
 		if (deviceMapperMountPath.exists()) { // / if image is mounted using
 												// device mapper
 			log.debug("Executing PolicyAgent command::: policyagent container_launch " + rootfsMountPath + " " + imageId
@@ -247,11 +264,11 @@ public class ProxyUtil {
 			result = executePolicyAgentCommands("container_launch", Constants.MOUNT_PATH + containerId, imageId,
 					containerId, containerName, Constants.TRUST_POLICY_PATH);
 		}
-		if(result == 0){
-			
+		if (result == 0) {
+
 			return true;
 		}
-			
+
 		return false;
 	}
 
