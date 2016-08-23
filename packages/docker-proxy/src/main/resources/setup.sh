@@ -233,10 +233,10 @@ echo "export JAVA_REQUIRED_VERSION=$JAVA_REQUIRED_VERSION" >> $DOCKER_PROXY_ENV/
 
 # make sure unzip and authbind are installed
 # added jq for JSON parsing
-#DIRECTOR_YUM_PACKAGES="zip unzip authbind qemu-utils expect openssl sshfs kpartx libguestfs-tools lvm2"
-#DIRECTOR_APT_PACKAGES="zip  unzip authbind qemu-utils expect openssl sshfs kpartx libguestfs-tools lvm2 jq" #vdfuse"
-#DIRECTOR_YAST_PACKAGES="zip unzip authbind qemu-utils expect openssl sshfs kpartx libguestfs-tools lvm2"
-#DIRECTOR_ZYPPER_PACKAGES="zip  unzip authbind qemu-utils expect openssl sshfs kpartx libguestfs-tools lvm2"
+DOCKER_PROXY_YUM_PACKAGES="zip unzip authbind jq"
+DOCKER_PROXY_APT_PACKAGES="zip  unzip authbind jq"
+DOCKER_PROXY_YAST_PACKAGES="zip unzip authbind jq"
+DOCKER_PROXY_ZYPPER_PACKAGES="zip  unzip authbind jq"
 auto_install "Installer requirements" "DOCKER_PROXY"
 if [ $? -ne 0 ]; then echo_failure "Failed to install prerequisites through package installer"; exit -1; fi
 
