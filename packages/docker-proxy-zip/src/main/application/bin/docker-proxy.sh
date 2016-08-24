@@ -103,12 +103,9 @@ DOCKER_PROXY_SETUP_TASKS=${DOCKER_PROXY_SETUP_TASKS:-"password-vault jetty-tls-k
 # if we are running as non-root and the standard location isn't writable 
 # then we need a different place
 DOCKER_PROXY_PID_FILE=${DOCKER_PROXY_PID_FILE:-/var/run/docker-proxy.pid}
-DOCKER_ENGINE_PID_FILE=${DOCKER_ENGINE_PID_FILE:-/var/run/dockerengine.pid}
+DOCKER_ENGINE_PID_FILE=${DOCKER_ENGINE_PID_FILE:-/var/run/docker.pid}
 if [ ! -w "$DOCKER_PROXY_PID_FILE" ] && [ ! -w $(dirname "$DOCKER_PROXY_PID_FILE") ]; then
   DOCKER_PROXY_PID_FILE=$DOCKER_PROXY_REPOSITORY/docker-proxy.pid
-fi
-if [ ! -w "$DOCKER_ENGINE_PID_FILE" ] && [ ! -w $(dirname "$DOCKER_ENGINE_PID_FILE") ]; then
-  DOCKER_ENGINE_PID_FILE=$DOCKER_PROXY_REPOSITORY/dockerengine.pid
 fi
 
 ###################################################################################################
@@ -260,26 +257,57 @@ docker_proxy_is_running() {
 }
 
 docker_info_populate() {
-	TEMP_DOCKER_INFO_FILE="/tmp/CIT/docker_info"
-	TEMP_DOCKER_IMAGES_FILE="/tmp/CIT/docker_images"
+	TEMP_DOCKER_INFO_FILE="/opt/docker-proxy/configuration/docker_info"
+	TEMP_DOCKER_IMAGES_FILE="/opt/docker-proxy/configuration/docker_images"
 	. "$DOCKER_CONF_FILE_PATH"		
-	mkdir -p /tmp/CIT
 	if ! result=$(which docker)
 	then
 		echo >&2 "docker command not found"
 		return 1
 	fi
-	if  ! $(docker $DOCKER_OPTS info >$TEMP_DOCKER_INFO_FILE 2>/dev/null) 
+	sub_host_str="";
+	flag=`echo $DOCKER_OPTS|awk '{print match($0,"-H ")}'`;
+	if [ $flag -gt 0 ];then
+#	    echo "Found host (-H) explicitly mentioned in DOCKER_OPTS";
+	    sub_host_str=$(echo  $DOCKER_OPTS | sed 's/.*-H //')	    	    	    
+#	    echo "After stripping out -H=$sub_host_str"
+	else
+	    flag=`echo $a|awk '{print match($0,"--host ")}'`;
+	    if [ $flag -gt 0 ];then	        	    
+#	    	echo "Found host (--host) explicitly mentioned in DOCKER_OPTS";
+	    	sub_host_str=$(echo  $DOCKER_OPTS | sed 's/.*--host //')	    	
+    	fi
+	fi
+	
+	if [ -z "$sub_host_str" ]; then
+		echo "No host configured in DOCKER_OPTS "
+	else
+#		echo "Going to construct host string"
+		IFS=' ' # delimit on _
+		set -f # disable the glob part
+		array=($sub_host_str) # invoke the split+glob operator
+		count=1;		
+		for arg in "${array[@]}"; do # loop over the array elements.
+#		   echo "split=$arg"
+		   if [ $count -eq 1 ];then
+		   	  	sub_host_str="-H $arg";
+                count=0;
+		   fi
+		done				
+	fi	
+
+#	echo "HOST_STR = $sub_host_str"
+	
+	if  ! $(docker $$sub_host_str info >$TEMP_DOCKER_INFO_FILE 2>/dev/null) 
 	then
 		sleep 2
-		if ! $(docker $DOCKER_OPTS info >$TEMP_DOCKER_INFO_FILE 2>/dev/null)
+		if ! $(docker $sub_host_str info >$TEMP_DOCKER_INFO_FILE 2>/dev/null)
 		then
 			echo >&2 "Unable to get docker info"
 			return 1
 		fi
 	fi
 }
-
 
 
 
@@ -297,6 +325,10 @@ docker_engine_is_running() {
 		# check the process list just in case the pid file is stale
 		DOCKER_ENGINE_PID=$(ps -A ww | grep -v grep | grep "docker daemon" | awk '{ print $1}')
 	fi
+	if [ -z "$DOCKER_ENGINE_PID" ]; then
+		# another check for 1.12
+		DOCKER_ENGINE_PID=$(ps -A ww | grep -v grep | grep "dockerd" | awk '{ print $1}')
+	fi	
 	if [ -z "$DOCKER_ENGINE_PID" ]; then
 		# Docker Engine is not running
 		return 1

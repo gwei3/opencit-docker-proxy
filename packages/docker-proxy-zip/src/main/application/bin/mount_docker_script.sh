@@ -20,8 +20,9 @@ DOCKER_VERSION=""
 DOCKER_ROOT_DIR=""
 TAG_REPO=""
 STORAGE_DRIVER=""
-TEMP_DOCKER_INFO_FILE="/tmp/CIT/docker_info"
-TEMP_DOCKER_IMAGES_FILE="/tmp/CIT/docker_images"
+TEMP_DOCKER_INFO_FILE="/opt/docker-proxy/configuration/docker_info"
+TEMP_DOCKER_IMAGES_FILE="/opt/docker-proxy/configuration/docker_images"
+
 DOCKER_CONF_FILE_PATH=/etc/default/docker
 DRIVER_DEVICEMAPPER="devicemapper"
 DRIVER_AUFS="aufs"
@@ -48,14 +49,9 @@ docker_version() {
 
 #reads various docker configuration related info
 populate_docker_info() {
-	if  [ ! -f "$TEMP_DOCKER_INFO_FILE" ] ; then
-		mkdir -p /tmp/CIT
-		. "$DOCKER_CONF_FILE_PATH"
-		if  ! $(docker $DOCKER_OPTS info >$TEMP_DOCKER_INFO_FILE 2>/dev/null) 
-		then
-			echo >&2 "Unable to get docker info"
-			return 1
-		fi
+	if  [ ! -f "$TEMP_DOCKER_INFO_FILE" ] ; then		
+		echo >&2 "Unable to get docker info"
+		return 1		
 	fi
 
 	if [ -n "$TAG_REPO" ]; then
@@ -69,7 +65,6 @@ populate_docker_info() {
 			echo >&2 "IMAGE_ID is : $IMAGE_ID"
 		fi
 	else
-		##IMAGE_ID=`cat /tmp/CIT/docker_images | grep "$IMAGE_ID" | awk '{print $3}' | sed -e 's/^[^:]*://'`
 		echo >&2 "IMAGE_ID is : $IMAGE_ID"
 	fi
 	STORAGE_DRIVER=$(cat $TEMP_DOCKER_INFO_FILE | grep "Storage Driver" | awk -F'[ :]' '{ print $4 }')
