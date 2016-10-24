@@ -376,10 +376,15 @@ docker_proxy_uninstall() {
 	DOCKER_CONFIG_FILE=`cat ${DOCKER_PROXY_PROPERTIES_FILE} | grep 'docker.conf.file.path' | cut -d'=' -f2`
 	
 	#Reverting the docker config file to exclude docker_proxy
-	. "$DOCKER_CONFIG_FILE"
-	DOCKER_OPTS=`expr "$DOCKER_OPTS" : '\(.*\) .*'`
-	sed -i -e "/DOCKER_OPTS/s/^#*/#/" "$DOCKER_CONFIG_FILE"
-	echo DOCKER_OPTS=\"$DOCKER_OPTS\" >> "$DOCKER_CONFIG_FILE"
+	if [ "$DOCKER_CONFIG_FILE" = "/etc/default/docker" ]
+	then
+	  . "$DOCKER_CONFIG_FILE"
+	  DOCKER_OPTS=`expr "$DOCKER_OPTS" : '\(.*\) .*'`
+	  sed -i "s/^DOCKER_OPTS.*/DOCKER_OPTS=\"$DOCKER_OPTS\"/g" "$DOCKER_CONFIG_FILE"
+	else
+	  rm -f "$DOCKER_CONFIG_FILE"
+	  systemctl daemon-reload
+	fi
 	
 	if [ "$2" = "--purge" ]; then
 
