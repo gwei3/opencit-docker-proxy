@@ -28,6 +28,7 @@ DOCKER_CONFIG_FILE=${DOCKER_CONFIG_FILE:-/etc/default/docker}
 DOCKER_INSTALATION_DIR=${DOCKER_INSTALATION_DIR:-/var/lib/docker}
 DOCKER_PLUGINS_DIR=${DOCKER_PLUGINS_DIR:-/etc/docker/plugins}
 DOCKER_PROXY_PLUGIN_PORT=${DOCKER_PROXY_PLUGIN_PORT:-22080}
+DOCKER_PROXY_PLUGIN_HOST=${DOCKER_PROXY_PLUGIN_HOST:-localhost}
 VRTM_ENV=${VRTM_ENV:-/opt/vrtm/env}
 
 POLICY_AGENT_PATH=${POLICYAGENT_BIN}
@@ -464,6 +465,7 @@ if [ -z "$DOCKER_PROXY_NOSETUP" ]; then
 
   docker-proxy config jetty.port $DOCKER_PROXY_PLUGIN_PORT >/dev/null
   docker-proxy config jetty.secure.port $DOCKER_PROXY_PORT_HTTPS >/dev/null
+  docker-proxy config jetty.host $DOCKER_PROXY_PLUGIN_HOST >/dev/null
 
   docker-proxy setup
 fi
