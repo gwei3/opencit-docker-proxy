@@ -34,11 +34,16 @@ public class RMIWorkflow extends BypassWorkflow {
 		int responseStatusInt = Integer.parseInt(responseStatus);
 		if (responseStatusInt == HttpStatus.SC_NO_CONTENT || responseStatusInt == HttpStatus.SC_OK) {
 			String containerId = ProxyUtil.extractContainerIdformDeleteRequest(requestUri);
-			log.debug("RMI workflow containerId:: {}",
-					containerId);
-			if(StringUtils.isBlank(containerId)){
+			log.debug("RMI workflow containerId:: {}", containerId);
+			if (StringUtils.isBlank(containerId)) {
 				log.error("Could not extract container id from request uri:{}. Not updating vRTM status", requestUri);
 				return;
+			} else {
+				// Strip any characters after the container id
+				if (containerId.contains("?")) {
+					containerId = containerId.substring(0, containerId.indexOf("?"));
+					log.debug("Container id to be passed on to vRTM = {}", containerId);
+				}
 			}
 			VrtmManager vrtmManager = new VrtmManager();
 			vrtmManager.checkAndUpdateVrtm(containerId, Constants.VRTM_STATUS_DELETED);
