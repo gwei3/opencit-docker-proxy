@@ -28,6 +28,7 @@ DOCKER_CONFIG_FILE=${DOCKER_CONFIG_FILE:-/etc/default/docker}
 DOCKER_INSTALATION_DIR=${DOCKER_INSTALATION_DIR:-/var/lib/docker}
 DOCKER_PLUGINS_DIR=${DOCKER_PLUGINS_DIR:-/etc/docker/plugins}
 DOCKER_PROXY_PLUGIN_PORT=${DOCKER_PROXY_PLUGIN_PORT:-22080}
+DOCKER_PROXY_PLUGIN_HOST=${DOCKER_PROXY_PLUGIN_HOST:-localhost}
 VRTM_ENV=${VRTM_ENV:-/opt/vrtm/env}
 
 POLICY_AGENT_PATH=${POLICYAGENT_BIN}
@@ -240,6 +241,32 @@ DOCKER_PROXY_ZYPPER_PACKAGES="zip  unzip authbind jq"
 auto_install "Installer requirements" "DOCKER_PROXY"
 if [ $? -ne 0 ]; then echo_failure "Failed to install prerequisites through package installer"; exit -1; fi
 
+function getFlavour() {
+  flavour=""
+  grep -c -i ubuntu /etc/*-release > /dev/null
+  if [ $? -eq 0 ] ; then
+    flavour="ubuntu"
+  fi
+  grep -c -i "red hat" /etc/*-release > /dev/null
+  if [ $? -eq 0 ] ; then
+    flavour="rhel"
+  fi
+  # grep -c -i fedora /etc/*-release > /dev/null
+  # if [ $? -eq 0 ] ; then
+    # flavour="fedora"
+  # fi
+  # grep -c -i suse /etc/*-release > /dev/null
+  # if [ $? -eq 0 ] ; then
+    # flavour="suse"
+  # fi
+  if [ "$flavour" == "" ] ; then
+    echo_failure "Unsupported linux flavor, Supported versions are ubuntu, rhel, fedora"
+    exit -1
+  else
+    echo $flavour
+  fi
+}
+
 
 DOCKER_PROXY_PORT_HTTP=${DOCKER_PROXY_PORT_HTTP:-${JETTY_PORT:-80}}
 DOCKER_PROXY_PORT_HTTPS=${DOCKER_PROXY_PORT_HTTPS:-${JETTY_SECURE_PORT:-443}}
@@ -288,31 +315,31 @@ disable_tcp_timestamps
 
 ## Installing Docker
 ## already installed needs to be checked not implemented in code
-version_gt() { 
-	test "$(echo "$@" | tr " " "\n" | sort -V | head -n 1)" != "$1"; 
-}
+# version_gt() { 
+	# test "$(echo "$@" | tr " " "\n" | sort -V | head -n 1)" != "$1"; 
+# }
 
-MINIMUM_KERNEL_VERSION_REQUIRED="3.10"
-CURRENT_KERNEL_VERSION=`uname -r | awk -F. '{print $1 FS $2}'`
-echo "CURRENT_KERNEL_VERSION=$CURRENT_KERNEL_VERSION"
-echo "MINIMUM_KERNEL_VERSION_REQUIRED=$MINIMUM_KERNEL_VERSION_REQUIRED"
+# MINIMUM_KERNEL_VERSION_REQUIRED="3.10"
+# CURRENT_KERNEL_VERSION=`uname -r | awk -F. '{print $1 FS $2}'`
+# echo "CURRENT_KERNEL_VERSION=$CURRENT_KERNEL_VERSION"
+# echo "MINIMUM_KERNEL_VERSION_REQUIRED=$MINIMUM_KERNEL_VERSION_REQUIRED"
 
-if ! version_gt $CURRENT_KERNEL_VERSION $MINIMUM_KERNEL_VERSION_REQUIRED; then
-	echo "Sorry Your kernel doesn't support this version of docker..!!"
-	exit 1
-fi
+# if ! version_gt $CURRENT_KERNEL_VERSION $MINIMUM_KERNEL_VERSION_REQUIRED; then
+	# echo "Sorry Your kernel doesn't support this version of docker..!!"
+	# exit 1
+# fi
 
-CODENAME=`lsb_release -c | awk --field-separator=: '{print $2}'`
-CODENAME=`echo $CODENAME | tr " " "\n"`
+# CODENAME=`lsb_release -c | awk --field-separator=: '{print $2}'`
+# CODENAME=`echo $CODENAME | tr " " "\n"`
 
-LIST="precise trusty vivid wily"
+# LIST="precise trusty vivid wily"
 
-if echo "$LIST" | grep -q "$CODENAME"; then
-  echo "Valid ubuntu version";
-else
-  echo "Sorry Your Ubuntu Version is not supported";
-  exit 1;
-fi
+# if echo "$LIST" | grep -q "$CODENAME"; then
+  # echo "Valid ubuntu version";
+# else
+  # echo "Sorry Your Ubuntu Version is not supported";
+  # exit 1;
+# fi
 
 # REPO_ADDRESS=`echo "deb https://apt.dockerproject.org/repo ubuntu-$CODENAME main"`
 
@@ -344,17 +371,48 @@ chmod 644 "$DOCKER_PROXY_PLUGIN_FILE"
 echo tcp://localhost:$DOCKER_PROXY_PLUGIN_PORT > "$DOCKER_PROXY_PLUGIN_FILE"
 
 #Modify the docker config file to include docker_proxy
-. "$DOCKER_CONFIG_FILE"
-if [ -z "$DOCKER_OPTS" ]
-then
-    DOCKER_OPTS="--storage-driver=aufs"
-fi	
-if test "${DOCKER_OPTS#*$PLUGIN_NAME}" == "$DOCKER_OPTS"
-then
-	DOCKER_OPTS="$DOCKER_OPTS --authorization-plugin=$PLUGIN_NAME"
+FLAVOUR=$(getFlavour)
+is_ubuntu_16_or_rhel=""
+if [ "$FLAVOUR" == "ubuntu" ]; then
+  is_ubuntu_16=`lsb_release -a | grep "^Release" | grep 16.04`
+  if [ -n "$is_ubuntu_16" ]; then
+    is_ubuntu_16_or_rhel="true"
+  fi
+elif [ "$FLAVOUR" == "rhel" ]; then
+  is_ubuntu_16_or_rhel="true"
+else
+  echo_failure "Docker Proxy Unsupported, Supported versions are ubuntu, rhel"
+  exit -1
 fi
-sed -i -e "/DOCKER_OPTS/s/^#*/#/" "$DOCKER_CONFIG_FILE"
-echo DOCKER_OPTS=\"$DOCKER_OPTS\" >> "$DOCKER_CONFIG_FILE"
+
+if [ -n "$is_ubuntu_16_or_rhel" ]
+then
+  DOCKER_CONFIG_DIR=/etc/systemd/system/docker.service.d
+  DOCKER_CONFIG_FILE="$DOCKER_CONFIG_DIR/docker.conf"
+  mkdir -p $DOCKER_CONFIG_DIR
+  echo "[Service]
+ExecStart=
+ExecStart=/usr/bin/dockerd --authorization-plugin=$PLUGIN_NAME" > "$DOCKER_CONFIG_FILE"
+  systemctl daemon-reload
+else
+  is_docker_opts_present=""
+  . "$DOCKER_CONFIG_FILE"
+  if [ -z "$DOCKER_OPTS" ]
+  then
+    is_docker_opts_present="false"
+    DOCKER_OPTS="--storage-driver=aufs"
+  fi
+  if test "${DOCKER_OPTS#*$PLUGIN_NAME}" == "$DOCKER_OPTS"
+  then
+	DOCKER_OPTS="$DOCKER_OPTS --authorization-plugin=$PLUGIN_NAME"
+  fi
+  if [ -n "$is_docker_opts_present" ]
+  then
+    echo "DOCKER_OPTS=\"$DOCKER_OPTS\"" >> "$DOCKER_CONFIG_FILE"
+  else
+    sed -i "s/^DOCKER_OPTS.*/DOCKER_OPTS=\"$DOCKER_OPTS\"/g" "$DOCKER_CONFIG_FILE"
+  fi
+fi
 
 #Populate docker-proxy.properties file
 echo "docker.conf.file.path=${DOCKER_CONFIG_FILE}" > "$DOCKER_PROXY_PROPERTIES_FILE"
@@ -407,6 +465,7 @@ if [ -z "$DOCKER_PROXY_NOSETUP" ]; then
 
   docker-proxy config jetty.port $DOCKER_PROXY_PLUGIN_PORT >/dev/null
   docker-proxy config jetty.secure.port $DOCKER_PROXY_PORT_HTTPS >/dev/null
+  docker-proxy config jetty.host $DOCKER_PROXY_PLUGIN_HOST >/dev/null
 
   docker-proxy setup
 fi
