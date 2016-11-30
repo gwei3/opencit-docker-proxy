@@ -40,7 +40,7 @@
 		<dependency>
 			<groupId>com.intel.mtwilson.util</groupId>
 			<artifactId>mtwilson-util-configuration</artifactId>
-			<version>3.1-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 
 		<!-- Other -->
