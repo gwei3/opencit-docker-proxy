@@ -9,7 +9,7 @@
   <modules>
 	<module>docker-proxy-maven-java</module>
 	<module>docker-proxy-maven-package-makeself</module>
-	<module>docker-proxy-maven-package-zip</module>
+	<!--<module>docker-proxy-maven-package-zip</module>-->
 	<module>docker-proxy-maven-root</module>
   </modules>
 
