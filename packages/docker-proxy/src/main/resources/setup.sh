@@ -302,6 +302,11 @@ chmod 755 $DOCKER_PROXY_HOME/bin/*
 
 # link /usr/local/bin/docker-proxy -> /opt/docker-proxy/bin/docker-proxy
 EXISTING_DOCKER_PROXY_COMMAND=`which docker-proxy`
+if [ -n "$EXISTING_DOCKER_PROXY_COMMAND" ] && [ "$EXISTING_DOCKER_PROXY_COMMAND" == "/usr/bin/docker-proxy" ]; then
+    rm -rf /usr/bin/docker-proxy
+    EXISTING_DOCKER_PROXY_COMMAND=`which docker-proxy`   
+fi
+
 if [ -z "$EXISTING_DOCKER_PROXY_COMMAND" ]; then
   ln -s $DOCKER_PROXY_HOME/bin/docker-proxy.sh /usr/local/bin/docker-proxy
 fi
