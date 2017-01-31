@@ -202,30 +202,16 @@ echo "install log file is" $INSTALL_LOG_FILE
 
 
 
-# docker-proxy requires java 1.7 or later
-# detect or install java (jdk-1.7.0_51-linux-x64.tar.gz)
+# docker-proxy requires java 1.8 or later
 echo "Installing Java..."
-JAVA_REQUIRED_VERSION=${JAVA_REQUIRED_VERSION:-1.7}
-JAVA_PACKAGE=`ls -1 jdk-* jre-* java-*.bin 2>/dev/null | tail -n 1`
-# check if java is readable to the non-root user
-if [ -z "$JAVA_HOME" ]; then
-  java_detect > /dev/null
-fi
-if [ -n "$JAVA_HOME" ]; then
-  if [ $(whoami) == "root" ]; then
-    JAVA_USER_READABLE=$(sudo -u $DOCKER_PROXY_USERNAME /bin/bash -c "if [ -r $JAVA_HOME ]; then echo 'yes'; fi")
-  else
-    JAVA_USER_READABLE=$(/bin/bash -c "if [ -r $JAVA_HOME ]; then echo 'yes'; fi")
-  fi
-fi
-if [ -z "$JAVA_HOME" ] || [ -z "$JAVA_USER_READABLE" ]; then
-  JAVA_HOME=$DOCKER_PROXY_HOME/share/jdk1.7.0_79
-fi
-mkdir -p $JAVA_HOME
-java_install_in_home $JAVA_PACKAGE
+JAVA_REQUIRED_VERSION=${JAVA_REQUIRED_VERSION:-1.8}
+java_install_openjdk
+JAVA_CMD=$(type -p java | xargs readlink -f)
+JAVA_HOME=$(dirname $JAVA_CMD | xargs dirname | xargs dirname)
+JAVA_REQUIRED_VERSION=$(java -version 2>&1 | head -n 1 | awk -F '"' '{print $2}')
 echo "# $(date)" > $DOCKER_PROXY_ENV/docker-proxy-java
 echo "export JAVA_HOME=$JAVA_HOME" >> $DOCKER_PROXY_ENV/docker-proxy-java
-echo "export JAVA_CMD=$JAVA_HOME/bin/java" >> $DOCKER_PROXY_ENV/docker-proxy-java
+echo "export JAVA_CMD=$JAVA_CMD" >> $DOCKER_PROXY_ENV/docker-proxy-java
 echo "export JAVA_REQUIRED_VERSION=$JAVA_REQUIRED_VERSION" >> $DOCKER_PROXY_ENV/docker-proxy-java
 
 # libguestfs packages has a custom prompt about installing supermin which ignores the â€œ-yâ€? option we provide to apt-get. Following code will help to avoid that prompt 
@@ -302,6 +288,11 @@ chmod 755 $DOCKER_PROXY_HOME/bin/*
 
 # link /usr/local/bin/docker-proxy -> /opt/docker-proxy/bin/docker-proxy
 EXISTING_DOCKER_PROXY_COMMAND=`which docker-proxy`
+if [ -n "$EXISTING_DOCKER_PROXY_COMMAND" ] && [ "$EXISTING_DOCKER_PROXY_COMMAND" == "/usr/bin/docker-proxy" ]; then
+    rm -rf /usr/bin/docker-proxy
+    EXISTING_DOCKER_PROXY_COMMAND=`which docker-proxy`   
+fi
+
 if [ -z "$EXISTING_DOCKER_PROXY_COMMAND" ]; then
   ln -s $DOCKER_PROXY_HOME/bin/docker-proxy.sh /usr/local/bin/docker-proxy
 fi
