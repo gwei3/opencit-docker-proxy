@@ -140,7 +140,7 @@ DOCKER_ENGINE_SOCKET_FILE=""
 DOCKER_ENGINE_HOST=""
 DOCKER_ENGINE_LISTEN_PORT=""
 DEFAULT_DOCKER_ENGINE_SOCKET="/var/run/docker.sock"
-. "$DOCKER_CONF_FILE_PATH"
+. "$DOCKER_CONF_FILE_PATH" 2>/dev/null
 flag=""
 DOCKER_ENGINE_HOST_OPTS=""
 while read arg
@@ -259,7 +259,7 @@ docker_proxy_is_running() {
 docker_info_populate() {
 	TEMP_DOCKER_INFO_FILE="/opt/docker-proxy/configuration/docker_info"
 	TEMP_DOCKER_IMAGES_FILE="/opt/docker-proxy/configuration/docker_images"
-	. "$DOCKER_CONF_FILE_PATH"		
+	. "$DOCKER_CONF_FILE_PATH"	2>/dev/null
 	if ! result=$(which docker)
 	then
 		echo >&2 "docker command not found"
@@ -378,7 +378,7 @@ docker_proxy_uninstall() {
 	#Reverting the docker config file to exclude docker_proxy
 	if [ "$DOCKER_CONFIG_FILE" = "/etc/default/docker" ]
 	then
-	  . "$DOCKER_CONFIG_FILE"
+	  . "$DOCKER_CONFIG_FILE" 2>/dev/null
 	  DOCKER_OPTS=`expr "$DOCKER_OPTS" : '\(.*\) .*'`
 	  sed -i "s/^DOCKER_OPTS.*/DOCKER_OPTS=\"$DOCKER_OPTS\"/g" "$DOCKER_CONFIG_FILE"
 	else
