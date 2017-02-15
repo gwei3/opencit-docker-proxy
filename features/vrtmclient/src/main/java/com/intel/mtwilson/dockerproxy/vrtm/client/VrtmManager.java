@@ -48,7 +48,7 @@ public class VrtmManager {
 
 			log.debug("VRTM request xml created for :: {}", containerId);
 		} catch (JAXBException e) {
-			log.error("Error creating a request xml, containerId" + containerId, e);
+			log.error("Error creating a request xml, containerId : {}" ,containerId, e);
 			throw new DockerProxyException(e);
 		}
 		tcBuffer.setRPCPayload(xmlString.getBytes());
@@ -58,7 +58,7 @@ public class VrtmManager {
 		try {
 			tcBuffer = rpClient.send(tcBuffer); /// send to vrtm
 		} catch (IOException e) {
-			log.error("Error sending request to vRTM, containerId" + containerId, e);
+			log.error("Error sending request to vRTM, containerId: {}" , containerId, e);
 			throw new DockerProxyException(e);
 		} finally {
 			rpClient.close();
@@ -66,19 +66,19 @@ public class VrtmManager {
 		String xmlResponse = tcBuffer.getPayloadAsString(); // Get xml response
 		// of vrtm from
 		// buffer
-		log.trace("xmlResponse from VRTM:::" + xmlResponse);
+		log.trace("xmlResponse from VRTM::: {}", xmlResponse);
 		String status;
 		try {
 			status = getVrtmStatus(xmlResponse);
 		} catch (JAXBException e) {
-			log.error("Error reading vRTM response, containerId" + containerId, e);
+			log.error("Error reading vRTM response, containerId: {}", containerId, e);
 			throw new DockerProxyException(e);
 		}
 		log.info("########### status from vrtm::: {},containerId: {}", status, containerId);
 		int statusValue = Integer.parseInt(status);
 
 		if (statusValue < 0) {
-			log.debug("Vrtm  status update failed with statusValue::" + statusValue + ", containerId:" + containerId);
+			log.debug("Vrtm  status update failed with statusValue:: {} , containerId: {}", statusValue ,containerId);
 		}
 
 	}

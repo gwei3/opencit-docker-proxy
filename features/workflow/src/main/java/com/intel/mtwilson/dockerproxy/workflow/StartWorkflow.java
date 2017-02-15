@@ -34,7 +34,7 @@ public class StartWorkflow extends BypassWorkflow {
 		if (StringUtils.isBlank(imageId)) {
 			// If imageId is not found we try to get imageId from containerId
 			// using container configuration json object
-			log.debug("StartWorkflow , containerId::" + containerId + " imageId::" + imageId);
+			log.debug("StartWorkflow , containerId:: {} and imageId:: {}" ,containerId ,imageId);
 			imageId = ProxyUtil.extractImageIdFromContainerId(containerId);
 			// Setting in cache for future use
 			if (StringUtils.isNotBlank(containerId)) {
@@ -62,10 +62,9 @@ public class StartWorkflow extends BypassWorkflow {
 			log.debug("Policy agent validate status:{} for request uri {}", policyAgentValidate,requestUri);
 
 			if (!policyAgentValidate) { // If PA validation failed we throw
-				log.info("\n Policy agent validation failed , requestUri::"+requestUri);
-				
+				log.info("\n Policy agent validation failed , requestUri:: {}", requestUri);
 			}else{
-				log.info("\n Policy agent validation successful, going to launch , requestUri::"+requestUri);
+				log.info("\n Policy agent validation successful, going to launch , requestUri:: {}",requestUri);
 			}
 
 			endTime = System.currentTimeMillis();

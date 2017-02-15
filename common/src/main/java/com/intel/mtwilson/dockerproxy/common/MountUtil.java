@@ -18,13 +18,13 @@ public class MountUtil {
 		String mountPathParameter = "--mount-path=" + mountpath;
 		String command = Constants.mountDockerScript + Constants.SPACE + mountPathParameter + Constants.SPACE + hostUrlParameter + Constants.SPACE
 				+ imageIdParameter;
-		log.debug("\n" + "Mounting the docker image : " + mountpath + "with command: " + command);
+		log.debug("Mounting the docker image : {} with command : {}" , mountpath , command);
 		try {
 			int exitcode = ProxyUtil.executeCommandInExecUtil(Constants.mountDockerScript, mountPathParameter,
 					hostUrlParameter, imageIdParameter);
 			return exitcode;
 		} catch (IOException e) {
-			log.error("Error in mounting docker image" + e);
+			log.error("Error in mounting docker image" , e);
 			throw new DockerProxyException("Error in mounting docker image", e);
 		}
 	}
@@ -35,14 +35,14 @@ public class MountUtil {
 		String hostUrlParameter = getDockerOpts(serverType);
 
 		String command = Constants.mountDockerScript + Constants.SPACE + unmountPathParameter;
-		log.debug(":\n" + "Unmounting the docker image : " + mountpath + "with command: " + command);
+		log.debug("Unmounting the docker image : {} with command: {}", mountpath , command);
 		int exitcode;
 		try {
 			exitcode = ProxyUtil.executeCommandInExecUtil(Constants.mountDockerScript, unmountPathParameter,
 					hostUrlParameter);
 		} catch (IOException e) {
 			exitcode = 1;
-			log.error("Error in unmounting docker image" + e);
+			log.error("Error in unmounting docker image" , e);
 		}
 		File mountDirectory = new File(mountpath);
 		if (mountDirectory.exists()) {
