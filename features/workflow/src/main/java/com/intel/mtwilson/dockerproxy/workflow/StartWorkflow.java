@@ -11,6 +11,8 @@ import com.intel.mtwilson.dockerproxy.common.UnmountTask;
 import com.intel.mtwilson.dockerproxy.exception.DockerProxyException;
 import com.intel.mtwilson.dockerproxy.common.ProxyUtil;
 
+
+
 public class StartWorkflow extends BypassWorkflow {
 
 	public StartWorkflow(String requestMethod, String requestUri, String body) {
@@ -58,6 +60,9 @@ public class StartWorkflow extends BypassWorkflow {
 		long endTime = 0;
 		boolean policyAgentValidate;
 		try {
+			/* Calling PA to validate and check whether to go forward. PA calls vrtm and vrtm calls MA where measurement is carried out and 
+			 * cumulative hash is generated. vrtm validates that with policy image hash and returns to PA.
+			 */
 			policyAgentValidate = ProxyUtil.policyAgentValidate(containerId, imageId);
 			log.debug("Policy agent validate status:{} for request uri {}", policyAgentValidate,requestUri);
 
@@ -71,7 +76,7 @@ public class StartWorkflow extends BypassWorkflow {
 		} finally {
 			if (endTime != 0) {
 				long diff = endTime - startTime;
-				log.debug("StartWorkflow, validateClientRequestAndInit ,PolicyAgent Call time execution :: {}", diff);
+				log.info("StartWorkflow, validateClientRequestAndInit ,PolicyAgent Call time execution :: {}", diff);
 			}
 			///Asynchronously calling unmount
 			UnmountTask unmountTask= new UnmountTask(imageId,containerId);
