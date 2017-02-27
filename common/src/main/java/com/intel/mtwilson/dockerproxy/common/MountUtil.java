@@ -11,17 +11,17 @@ public class MountUtil {
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MountUtil.class);
 
 
-	public static int mountDocker(String mountpath, String imageId) throws DockerProxyException {
+	public static int mountDocker(String mountpath, String containerId) throws DockerProxyException {
 		String serverType = DockerProxyCache.getEngineServerType();
 		String hostUrlParameter = getDockerOpts(serverType);
-		String imageIdParameter = "--image-id=" + imageId;
+		String containerIdParameter = "--container-id=" + containerId;
 		String mountPathParameter = "--mount-path=" + mountpath;
 		String command = Constants.mountDockerScript + Constants.SPACE + mountPathParameter + Constants.SPACE + hostUrlParameter + Constants.SPACE
-				+ imageIdParameter;
+				+ containerIdParameter;
 		log.debug("Mounting the docker image : {} with command : {}" , mountpath , command);
 		try {
 			int exitcode = ProxyUtil.executeCommandInExecUtil(Constants.mountDockerScript, mountPathParameter,
-					hostUrlParameter, imageIdParameter);
+					hostUrlParameter, containerIdParameter);
 			return exitcode;
 		} catch (IOException e) {
 			log.error("Error in mounting docker image" , e);
@@ -29,7 +29,7 @@ public class MountUtil {
 		}
 	}
 
-	public static int unmountDocker(String mountpath, String imageId) {		
+	public static int unmountDocker(String mountpath, String containerId) {		
 		String unmountPathParameter = "--unmount-path=" + mountpath;
 		String serverType = DockerProxyCache.getEngineServerType();
 		String hostUrlParameter = getDockerOpts(serverType);
@@ -62,7 +62,7 @@ public class MountUtil {
 			log.error(msg);
 			throw new DockerProxyException(msg);
 		}
-		mountDocker(Constants.MOUNT_PATH + containerId, imageId);
+		mountDocker(Constants.MOUNT_PATH + containerId, containerId);
 	}
 
 	public static void unmountImage(String containerId, String imageId) {
@@ -75,7 +75,7 @@ public class MountUtil {
 
 			return;
 		}
-		unmountDocker(Constants.MOUNT_PATH + containerId, imageId);
+		unmountDocker(Constants.MOUNT_PATH + containerId, containerId);
 	}
 
 	private static String getDockerOpts(String serverType) {
