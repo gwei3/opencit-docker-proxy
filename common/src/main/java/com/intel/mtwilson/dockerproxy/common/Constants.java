@@ -15,7 +15,7 @@ public class Constants {
 
     public static final String ENGINE_SERVER_LISTEN_PORT = "docker.engine.listen.port";
     public static final String ENGINE_SERVER_HOST = "docker.engine.host";
-    public static final String mountDockerScript = "/opt/docker-proxy/bin/mount_docker_script.sh";
+    public static final String mountDockerScript = "/opt/docker-proxy/bin/mount_docker_container_script.sh";
     public static final String POLICY_AGENT_COMMAND = "policyagent";
     public static final String DOCKER_COMMAND = "docker";
     public static final String MOUNT_PATH = "/mnt/images/";

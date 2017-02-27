@@ -7,6 +7,16 @@ import com.intel.mtwilson.dockerproxy.common.ProxyUtil;
 import com.intel.mtwilson.dockerproxy.exception.DockerProxyException;
 import com.intel.mtwilson.dockerproxy.vrtm.client.VrtmManager;
 
+/*
+ * This class  manages restart workflow when request received from controller is containers/(.*?)/restart
+ * Method processResponseFromEngine has been overriden to update vrtm state started.
+ * This class does not override validateClientRequestAndInit since  policy agent cannot measure instance in running state.
+ * Also we cannot split restart call in stop and start states as dockerproxy just provides hook for request and response to docker
+ * engine, it can't by own spawn a new request for docker engine.
+ * 
+ * @author Aakash
+ * 
+ * */
 public class RestartWorkflow extends BypassWorkflow {
 
 	public RestartWorkflow(String requestMethod, String requestUri, String body) {
