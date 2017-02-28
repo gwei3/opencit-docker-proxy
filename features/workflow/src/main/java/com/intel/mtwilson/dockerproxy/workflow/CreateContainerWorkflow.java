@@ -65,20 +65,16 @@ public class CreateContainerWorkflow extends BypassWorkflow {
 						}
 					}
 
-				} catch (ExecuteException e) {
-					String error = "Unable to execute command to find the full image id for imageid=" + imageId;
-					log.error(error, e);
-					throw new DockerProxyException(error, e);
-				} catch (IOException e) {
+				} catch (Exception e) {
 					String error = "Unable to execute command to find the full image id for imageid=" + imageId;
 					log.error(error, e);
 					throw new DockerProxyException(error, e);
 				}
 			}
 		}
-		log.debug("CreateContainerWorkflow, extracted imageId(from request) imageId::" + imageId);
+		log.debug("CreateContainerWorkflow, extracted imageId(from request) imageId:: {}", imageId);
 		String containerId = ProxyUtil.extractContainerIdFromCreateContainerResponse(responseBody);
-		log.debug("CreateContainerWorkflow, extracted containerId(from response) containerId::" + containerId);
+		log.debug("CreateContainerWorkflow, extracted containerId(from response) containerId:: {}", containerId);
 		log.debug("CreateContainerWorkflow processResponseFromEngine imageId:{} and containerId:{} ", imageId,
 				containerId);
 		if (StringUtils.isNotBlank(containerId) && StringUtils.isNotBlank(imageId)) {
