@@ -20,7 +20,7 @@ public class UnmountTask implements Runnable {
 
 	@Override
 	public void run() {
-		log.debug("Going to unmount for containerId::"+containerId+" imageId::"+imageId);
+		log.debug("Going to unmount for containerId:: {} and imageId:: {}", containerId, imageId);
 		MountUtil.unmountImage(containerId, imageId);
 		
 	}

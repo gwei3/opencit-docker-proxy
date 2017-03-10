@@ -11,6 +11,8 @@ import com.intel.mtwilson.dockerproxy.common.UnmountTask;
 import com.intel.mtwilson.dockerproxy.exception.DockerProxyException;
 import com.intel.mtwilson.dockerproxy.common.ProxyUtil;
 
+
+
 public class StartWorkflow extends BypassWorkflow {
 
 	public StartWorkflow(String requestMethod, String requestUri, String body) {
@@ -34,7 +36,7 @@ public class StartWorkflow extends BypassWorkflow {
 		if (StringUtils.isBlank(imageId)) {
 			// If imageId is not found we try to get imageId from containerId
 			// using container configuration json object
-			log.debug("StartWorkflow , containerId::" + containerId + " imageId::" + imageId);
+			log.debug("StartWorkflow , containerId:: {} and imageId:: {}" ,containerId ,imageId);
 			imageId = ProxyUtil.extractImageIdFromContainerId(containerId);
 			// Setting in cache for future use
 			if (StringUtils.isNotBlank(containerId)) {
@@ -58,21 +60,23 @@ public class StartWorkflow extends BypassWorkflow {
 		long endTime = 0;
 		boolean policyAgentValidate;
 		try {
+			/* Calling PA to validate and check whether to go forward. PA calls vrtm and vrtm calls MA where measurement is carried out and 
+			 * cumulative hash is generated. vrtm validates that with policy image hash and returns to PA.
+			 */
 			policyAgentValidate = ProxyUtil.policyAgentValidate(containerId, imageId);
 			log.debug("Policy agent validate status:{} for request uri {}", policyAgentValidate,requestUri);
 
 			if (!policyAgentValidate) { // If PA validation failed we throw
-				log.info("\n Policy agent validation failed , requestUri::"+requestUri);
-				
+				log.info("\n Policy agent validation failed , requestUri:: {}", requestUri);
 			}else{
-				log.info("\n Policy agent validation successful, going to launch , requestUri::"+requestUri);
+				log.info("\n Policy agent validation successful, going to launch , requestUri:: {}",requestUri);
 			}
 
 			endTime = System.currentTimeMillis();
 		} finally {
 			if (endTime != 0) {
 				long diff = endTime - startTime;
-				log.debug("StartWorkflow, validateClientRequestAndInit ,PolicyAgent Call time execution :: {}", diff);
+				log.info("StartWorkflow, validateClientRequestAndInit ,PolicyAgent Call time execution :: {}", diff);
 			}
 			///Asynchronously calling unmount
 			UnmountTask unmountTask= new UnmountTask(imageId,containerId);

@@ -72,7 +72,7 @@ public class ProxyUtil {
 	}
 
 	public static String extractContainerIdFromCreateContainerResponse(String responseBody) {
-		log.debug("extractContainerIdFromCreateContainerResponse,responseBody:" + responseBody);
+		log.debug("extractContainerIdFromCreateContainerResponse,responseBody: {}", responseBody);
 
 		int indexOfCurlyBranceOpen = responseBody.indexOf("{");
 		if (indexOfCurlyBranceOpen == -1) {
@@ -84,7 +84,7 @@ public class ProxyUtil {
 			return null;
 		}
 		String jsonString = body.substring(0, indexOfCurlyBranceClose + 1);
-		log.debug("extractContainerIdFromCreateContainerResponse ,jsonString::" + jsonString);
+		log.debug("extractContainerIdFromCreateContainerResponse ,jsonString:: {}", jsonString);
 		Map<String, Object> map = convertJsonToMap(jsonString);
 		String containerId = (String) map.get("Id");
 
@@ -108,7 +108,7 @@ public class ProxyUtil {
 
 			fisTargetFile = new FileInputStream(configJsonFile);
 		} catch (FileNotFoundException e) {
-			log.error("Unable to read config json, isV2Version:" + isV2Version);
+			log.error("Unable to read config json, isV2Version: {}", isV2Version);
 		}
 
 		if (fisTargetFile == null) {
@@ -119,7 +119,7 @@ public class ProxyUtil {
 		try {
 			targetFileStr = IOUtils.toString(fisTargetFile, "UTF-8");
 		} catch (IOException e) {
-			log.error("Unable to read config json, isV2Version:" + isV2Version);
+			log.error("Unable to read config json, isV2Version: {}", isV2Version);
 		} finally {
 			try {
 				fisTargetFile.close();
@@ -174,16 +174,16 @@ public class ProxyUtil {
 		String imageAttribute = (String) map.get("Image");
 		String imageId = imageAttribute;
 
-		log.trace("imageAttribute::" + imageAttribute);
+		log.debug("imageAttribute:: {}", imageAttribute);
 		if (isV2Version && StringUtils.isNotBlank(imageAttribute)) {
 			imageId = imageAttribute.substring(imageAttribute.indexOf(":") + 1);
 		}
-		log.debug(" xtractImageIdFromContainerId, imageId::" + imageId);
+		log.debug(" extractImageIdFromContainerId, imageId:: {}", imageId);
 		return imageId;
 	}
 
 	public static String extractImageIdFromCreateContainerRequest(String request) {
-		log.debug("extractImageIdFromCreateContainerRequest , request::" + request);
+		log.debug("extractImageIdFromCreateContainerRequest , request:: {}", request);
 		int indexOfCurlyBranceOpen = request.indexOf("{");
 
 		String body = request.substring(indexOfCurlyBranceOpen);
@@ -215,7 +215,7 @@ public class ProxyUtil {
 		try {
 			exitcode = executeCommandInExecUtil(DockerProxyCache.getPolicyAgentPath(), args);
 		} catch (Exception e) {
-			log.error("Error in executeDockerCommands docker " + args[0], e);
+			log.error("Error in executeDockerCommands docker : {}" , args[0], e);
 			throw new DockerProxyException("Error in executing policy agent", e);
 		}
 		return exitcode;
@@ -224,10 +224,11 @@ public class ProxyUtil {
 
 	public static int executeCommandInExecUtil(String command, String... args) throws IOException {
 		Result result = ExecUtil.execute(command, args);
-		log.debug("######################  RESPONSE for Command :" + command + "\n\n  ######STDOUT::  "
-				+ result.getStdout() + "\n\n Exit code::" + result.getExitCode());
+		log.debug("######################  RESPONSE for Command :{} ", command);
+		log.debug("######STDOUT::  {}", result.getStdout());
+		log.debug("Exit code:: {}", result.getExitCode());
 		if (StringUtils.isNotBlank(result.getStderr())) {
-			log.debug("###################### STDERR output:: " + result.getStderr());
+			log.debug("###################### STDERR output:: {}" , result.getStderr());
 		}
 		return result.getExitCode();
 	}
@@ -252,15 +253,13 @@ public class ProxyUtil {
 		int result;
 		if (deviceMapperMountPath.exists()) { // / if image is mounted using
 												// device mapper
-			log.debug("Executing PolicyAgent command::: policyagent container_launch " + rootfsMountPath + " " + imageId
-					+ " " + containerId + " " + containerName + " " + Constants.TRUST_POLICY_PATH);
+			log.debug("Executing PolicyAgent command::: policyagent container_launch {} {} {} {} {} " , rootfsMountPath , imageId ,containerId , containerName ,Constants.TRUST_POLICY_PATH);
 			result = executePolicyAgentCommands("container_launch", rootfsMountPath, imageId, containerId,
 					containerName, Constants.TRUST_POLICY_PATH);
 
 		} else {
-			log.debug("Executing PolicyAgent command for devicemapper::: policyagent container_launch "
-					+ Constants.MOUNT_PATH + containerId + " " + imageId + " " + containerId + " " + containerName + " "
-					+ Constants.TRUST_POLICY_PATH);
+			log.debug("Executing PolicyAgent command for devicemapper::: policyagent container_launch {}{} {} {} {} {}",
+					Constants.MOUNT_PATH , containerId ,imageId , containerId ,containerName , Constants.TRUST_POLICY_PATH);
 			result = executePolicyAgentCommands("container_launch", Constants.MOUNT_PATH + containerId, imageId,
 					containerId, containerName, Constants.TRUST_POLICY_PATH);
 		}
@@ -294,11 +293,11 @@ public class ProxyUtil {
 			map = objectMapper.readValue(jsonString, new TypeReference<Map<String, Object>>() {
 			});
 		} catch (JsonParseException e) {
-			log.error("Error parsing json: ", jsonString, e);
+			log.error("Error parsing json: {}", jsonString, e);
 		} catch (JsonMappingException e) {
-			log.error("Error mapping json: ", jsonString, e);
+			log.error("Error mapping json: {}", jsonString, e);
 		} catch (IOException e) {
-			log.error("Error getting container id from  json: ", jsonString, e);
+			log.error("Error getting container id from  json: {}", jsonString, e);
 		}
 		return map;
 	}
