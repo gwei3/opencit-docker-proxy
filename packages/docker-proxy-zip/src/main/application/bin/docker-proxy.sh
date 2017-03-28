@@ -279,9 +279,7 @@ docker_info_populate() {
     	fi
 	fi
 	
-	if [ -z "$sub_host_str" ]; then
-		echo "No host configured in DOCKER_OPTS "
-	else
+	if [ -n "$sub_host_str" ]; then
 #		echo "Going to construct host string"
 		IFS=' ' # delimit on _
 		set -f # disable the glob part
