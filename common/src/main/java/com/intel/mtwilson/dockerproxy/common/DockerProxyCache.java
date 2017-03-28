@@ -114,14 +114,14 @@ public class DockerProxyCache {
 
 		for (String param : params) {
 			param = param.trim();
-			log.info("param:" + param);
+			log.info("param: {}" , param);
 
 			if (param.contains(Constants.SERVER_TYPE_UNIX) || param.contains(Constants.SERVER_TYPE_TCP)) {
 				dockerHostString = param;
 			}
 
 		}
-		log.info("dockerHostString:" + dockerHostString);
+		log.info("dockerHostString: {}" , dockerHostString);
 
 		if (StringUtils.isBlank(dockerHostString)) {
 			engineServerType = Constants.SERVER_TYPE_UNIX;// default run

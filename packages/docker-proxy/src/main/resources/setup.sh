@@ -91,7 +91,7 @@ fi
 if [ "$(whoami)" == "root" ]; then
   # create a docker-proxy user if there isn't already one created
   DOCKER_PROXY_USERNAME=${DOCKER_PROXY_USERNAME:-docker-proxy}
-  if ! getent passwd $DOCKER_PROXY_USERNAME 2>&1 >/dev/null; then
+  if ! getent passwd $DOCKER_PROXY_USERNAME >/dev/null 2>&1; then
     useradd --comment "Mt Wilson Trust Director" --home $DOCKER_PROXY_HOME --system --shell /bin/false $DOCKER_PROXY_USERNAME
     usermod --lock $DOCKER_PROXY_USERNAME
     # note: to assign a shell and allow login you can run "usermod --shell /bin/bash --unlock $DOCKER_PROXY_USERNAME"
@@ -106,7 +106,7 @@ else
 fi
 
 # if an existing docker-proxy is already running, stop it while we install
-if which docker-proxy; then
+if which docker-proxy >/dev/null >2&1; then
   docker-proxy stop
 fi
 
@@ -387,7 +387,7 @@ ExecStart=/usr/bin/dockerd --authorization-plugin=$PLUGIN_NAME" > "$DOCKER_CONFI
   systemctl daemon-reload
 else
   is_docker_opts_present=""
-  . "$DOCKER_CONFIG_FILE"
+  . "$DOCKER_CONFIG_FILE" 2>/dev/null
   if [ -z "$DOCKER_OPTS" ]
   then
     is_docker_opts_present="false"
@@ -418,13 +418,13 @@ then
 	if [ -f  "$VRTM_CONFIGURATION/vRTM.cfg" ]
 	then
 		. "$VRTM_CONFIGURATION/vRTM.cfg"
-		if [ -z "$rpcore_port" ]
+		if [ -z "$vrtmcore_port" ]
 		then
 			echo_warning "vRTM layout file at location ${VRTM_CONFIGURATION} is not found"
 			echo_warning "installer will not write port, on which vRTM listens for api calls, in docker-proxy properties file"
 			echo_warning "please specify the port explicitly in docker-properties file"
 		else
-			echo "vrtm.port=${rpcore_port}" >> "$DOCKER_PROXY_PROPERTIES_FILE"
+			echo "vrtm.port=${vrtmcore_port}" >> "$DOCKER_PROXY_PROPERTIES_FILE"
 		fi
 	else
 		echo_warning "vRTM layout file at location ${VRTM_CONFIGURATION} is not found"
