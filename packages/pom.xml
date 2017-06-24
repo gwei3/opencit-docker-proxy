@@ -3,7 +3,7 @@
     
     <groupId>com.intel.mtwilson.docker-proxy.packages</groupId>
     <artifactId>docker-proxy-maven-build-packages</artifactId>
-    <version>3.2-SNAPSHOT</version>
+    <version>3.2.1-SNAPSHOT</version>
     
     <packaging>pom</packaging>
     
