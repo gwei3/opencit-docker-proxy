@@ -1,0 +1,2 @@
+# A successful build produces the following files:
+packages/docker-proxy/target/docker-proxy-3.2.1-SNAPSHOT.bin
